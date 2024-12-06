@@ -3,9 +3,9 @@ MP for CSNETWK AY 2024-2025 Term 1. This application provides a file transfer cl
 
 ## Testers
 The project includes the ff. files for testing:
-robot.png (~300KB)
-pins.jpg (~700KB)
-test.txt (~55MB)
+- robot.png (~300KB)
+- pins.jpg (~700KB)
+- test.txt (~55MB)
 
 ## Dependencies
 The project has the ff. Python library:
