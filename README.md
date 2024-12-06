@@ -1,5 +1,5 @@
 # CSNETWK_MP
-MP for CSNETWK AY 2024-2025 Term1. This application provides a file transfer client-server system that supports basic operations such as connecting to a server, registering a user, and sending/receiving files with real-time progress indication if tqdm was installed.
+MP for CSNETWK AY 2024-2025 Term 1. This application provides a file transfer client-server system that supports basic operations such as connecting to a server, registering a user, and sending/receiving files with real-time progress indication if tqdm was installed.
 
 ## Dependencies
 The project has the following Python library:
@@ -11,6 +11,7 @@ To install the required dependency, run the following command:
 
 ```bash
 pip install tqdm
+```
 
 **If `pip` is not installed**, you can install it using the ff. steps:
 
