@@ -2,7 +2,12 @@ import socket
 import ipaddress
 import os
 
-from tqdm import tqdm
+try:
+    from tqdm import tqdm
+    tqdm_available = True
+except ImportError:
+    tqdm = None
+    tqdm_available = False
 
 client_socket = None
 BUFFER = 1024
@@ -87,16 +92,21 @@ def send_file(filename: str, client_socket: socket.socket) -> None:
     filesize = os.path.getsize(filename)
     client_socket.sendall(f"{filesize}".ljust(BUFFER).encode(FORMAT))
 
-    progress_bar = tqdm(total=filesize, unit="B", unit_scale=True, unit_divisor=1024, desc="Sending")
+    if tqdm_available:
+        progress_bar = tqdm(total=filesize, unit="B", unit_scale=True, unit_divisor=1024, desc="Sending")
 
     # Send the size of the file
     with open(filename, "rb") as f:
         while bytes_read := f.read(BUFFER):
             # read the bytes from the file
             client_socket.sendall(bytes_read)
-            progress_bar.update(len(bytes_read))
 
-    progress_bar.close()
+            if tqdm_available:
+                progress_bar.update(len(bytes_read))
+
+    if tqdm_available:
+        progress_bar.close()
+
     print(recv_data(client_socket).decode(FORMAT))
 
 def receive_file(filename: str, client_socket: socket.socket) -> None:
@@ -107,16 +117,26 @@ def receive_file(filename: str, client_socket: socket.socket) -> None:
     """
 
     if client_socket.recv(1) == b'0':
-        print("Error: File was not found.")
+        print("Error: File not found in the server.")
         return
 
     received, filesize = 0, int(client_socket.recv(BUFFER).decode(FORMAT))
+
+    if tqdm_available:
+        progress_bar = tqdm(total=filesize, unit="B", unit_scale=True, unit_divisor=1024, desc="Receiving")
 
     with open(filename, "wb") as f:
         while received < filesize:
             bytes_read = client_socket.recv(BUFFER)
             received += len(bytes_read)
+
             f.write(bytes_read)
+
+            if tqdm_available:
+                progress_bar.update(len(bytes_read))
+
+    if tqdm_available:
+        progress_bar.close()
 
     print(f"File received from Server: {filename}")
 
@@ -161,14 +181,14 @@ def execute_command(client_socket: socket.socket, reg: str, command: str) -> str
         if reg is not None:
             parts = command.split(" ", 1)
 
-            if len(parts) != 2:
+            if len(parts) < 2:
                 print("Error: Command parameters do not match or is not allowed")
                 return reg
 
             command, filename = parts
 
             if not os.path.exists(filename):
-                print(f"Error: {filename} not found.")
+                print("Error: File not found.")
                 return reg
 
             if not is_filename(filename):
@@ -187,7 +207,7 @@ def execute_command(client_socket: socket.socket, reg: str, command: str) -> str
         if reg is not None:
             parts = command.split(" ", 1)
 
-            if len(parts) != 2:
+            if len(parts) < 2:
                 print("Error: Command parameters do not match or is not allowed")
                 return reg
 

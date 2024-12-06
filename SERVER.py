@@ -73,7 +73,7 @@ def get_dir(client_socket: socket.socket) -> None:
     """
 
     file_list = os.listdir(DIRECTORY)
-    msg = "\n".join(file_list) if file_list else "Server directory is empty"
+    msg = "Server Directory\n" + "\n".join(file_list) if file_list else "Server directory is empty"
 
     client_socket.sendall(encode_to_bytes(msg))
     client_socket.sendall(msg.encode(FORMAT))
