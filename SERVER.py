@@ -93,7 +93,7 @@ def store_file(client_socket: socket.socket, filename: str, reg: str) -> None:
 
         # Print confirmation message and send respone to the client
         print(f"[DIRECTORY] {reg} has uploaded {filename} {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}.")
-        response = f"{reg}{datetime.now().strftime("<%Y-%m-%d %H:%M:%S>")}:\nUploaded\n{filename}"
+        response = f"{reg}{datetime.now().strftime('<%Y-%m-%d %H:%M:%S>')}:\nUploaded\n{filename}"
         client_socket.sendall(encode_to_bytes(response))
         client_socket.sendall(response.encode(FORMAT))
 
