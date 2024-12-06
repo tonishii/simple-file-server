@@ -8,7 +8,7 @@ The project includes the ff. files for testing:
 - test.txt (~55MB)
 
 ## Dependencies
-The project has the ff. Python library:
+The project has the ff. Python packages:
 
 - **tqdm**: A library for displaying progress bars. (Optional)
 
@@ -22,6 +22,7 @@ pip install tqdm
 **If `pip` is not installed**, you can install it using the ff. steps:
 
 1. Ensure Python is installed on your system.
+
 2. Run the following command to install `pip`:
    ```bash
    python -m ensurepip --upgrade
@@ -32,5 +33,30 @@ pip install tqdm
    pip install tqdm
    ```
 
+### Verifying Installation
+To verify that `tqdm` is installed, you can run:
+```bash
+pip show tqdm
+```
+
 ### Difficulty in installing dependency
-If you cannot install tqdm the program can still run without the package.
+If you cannot install `tqdm` package, the program can still run without the ``tqdm`` package.
+
+## Running the Server and Client Applications
+To run the server and client applications, use the ff. commands:
+
+### 1. Running the Server
+- **Default host IP and port (5050):**
+```bash
+py .\SERVER.py
+```
+
+- **Custom IP and port:**
+```bash
+py .\SERVER.py <ip_addr> <port_number>
+```
+
+### 2. Running the Client Application
+```bash
+py .\CLIENT.py
+```
