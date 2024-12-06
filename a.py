@@ -5,7 +5,7 @@ import os
 from datetime import datetime
 from typing import Optional
 
-BUFFER = 128
+BUFFER = 1024
 FORMAT = "utf-8"
 DIRECTORY = 'SERVERFILES'
 registers = []
@@ -14,17 +14,23 @@ if not os.path.exists(DIRECTORY):
     print("[DIRECTORY] Creating a new server directory.")
     os.makedirs(DIRECTORY)
 
-SERVER_HOST, SERVER_PORT = (sys.argv[1], int(sys.argv[2])) if len(sys.argv) > 1 else (socket.gethostbyname(socket.gethostname()), 5050)
+SERVER_HOST, SERVER_PORT = (socket.gethostbyname(socket.gethostname()), int(sys.argv[1])) if len(sys.argv) == 2 else \
+                           (sys.argv[1], int(sys.argv[2])) if len(sys.argv) == 3 else \
+                           (socket.gethostbyname(socket.gethostname()), 5050)
 
 def encode_to_bytes(data: str) -> bytes:
-    """Encodes the length of data into a fixed-size byte array."""
+    """Encodes the length of data into a fixed-size byte array.
+
+    :param str data: data to be encoded for sending its size
+    :return bytes: returns the size of data in bytes
+    """
     return str(len(data)).encode(FORMAT).ljust(BUFFER)
 
 def recv_data(client_socket) -> bytes:
-    """Receives header containing length of data then receives data of said length
+    """Receives header containing length of data then receives data of said length.
 
-    :param socket client_socket: Current connection of the client
-    :return bytes: Returns the data decoded of specified FORMAT
+    :param socket.socket client_socket: current connection of the client
+    :return bytes: returns the data decoded of specified FORMAT
     """
     data_length = int(client_socket.recv(BUFFER).decode(FORMAT))
     return client_socket.recv(data_length)
@@ -32,9 +38,11 @@ def recv_data(client_socket) -> bytes:
 def store_file(client_socket, filename, reg) -> None:
     """Stores the file in the directory of the server.
 
-    :param socket client_socket: Current connection of the client
-    :param str filename: Name of the file to be stored in the server directory
+    :param socket.socket client_socket: current connection of the client
+    :param str filename: name of the file to be stored in the server directory
+    :param str reg: handle of the currently connected client
     """
+
     filepath = os.path.join(DIRECTORY, filename)
     received, filesize = 0, int(client_socket.recv(BUFFER).decode(FORMAT))
 
@@ -105,27 +113,24 @@ def handle_client(client_socket, addr) -> None:
     while True:
         try:
             request = client_socket.recv(BUFFER).decode(FORMAT)
-            data = recv_data(client_socket)
+
+            if request not in ["/dir", "/leave"]:
+                data = recv_data(client_socket)
 
             print(request, data, reg)
 
-            if request == "/register":
-                reg = register_client(client_socket, data.decode(FORMAT))
-
-            elif request == "/get":
-                send_file(client_socket, data.decode(FORMAT))
-
-            elif request == "/store":
-                store_file(client_socket, data.decode(FORMAT), reg)
-
-            elif request == "/dir":
-                get_dir(client_socket)
-
-            elif request == "/leave":
-                break
+            match request:
+                case "/register": reg = register_client(client_socket, data.decode(FORMAT))
+                case "/get": send_file(client_socket, data.decode(FORMAT))
+                case "/store": store_file(client_socket, data.decode(FORMAT), reg)
+                case "/dir": get_dir(client_socket)
+                case "/leave":
+                    break
 
         except ConnectionError:
             print(f"[ERROR] Client side connection abruptly closed.")
+            break
+        except ValueError as e:
             break
 
     if reg:

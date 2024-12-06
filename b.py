@@ -2,7 +2,7 @@ import socket
 import ipaddress
 import os
 
-BUFFER = 128
+BUFFER = 1024
 FORMAT = "utf-8"
 
 # List of available commands in the application
@@ -149,12 +149,11 @@ def execute_command(client_socket: socket.socket, reg: str, command: str) -> str
         if reg is not None:
             parts = command.split(" ", 1)
 
-            if len(parts) < 2:
+            if len(parts) != 2:
                 print("Error: Command parameters do not match or is not allowed")
                 return reg
 
             command, filename = parts
-            print(command, filename)
 
             client_socket.sendall(command.encode(FORMAT))
             client_socket.sendall(encode_to_bytes(filename))
@@ -168,7 +167,7 @@ def execute_command(client_socket: socket.socket, reg: str, command: str) -> str
         if reg is not None:
             parts = command.split(" ", 1)
 
-            if len(parts) < 2:
+            if len(parts) != 2:
                 print("Error: Command parameters do not match or is not allowed")
                 return reg
 
@@ -186,17 +185,12 @@ def execute_command(client_socket: socket.socket, reg: str, command: str) -> str
         if reg is not None:
             client_socket.sendall(command.encode(FORMAT))
 
-            client_socket.sendall(b'1')
-            client_socket.sendall(b' ')
-
             print(recv_data(client_socket).decode(FORMAT))
         else:
             print("Error: No register entered in the server.")
 
     elif command == '/leave':
         client_socket.sendall(command.encode(FORMAT))
-        client_socket.sendall(b'1')
-        client_socket.sendall(b' ')
         return None
 
     else:
@@ -209,50 +203,55 @@ def handle_commands() -> None:
     :raises ValueError: raises this error when invalid parameters were met when inputting the command
     """
 
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client_socket:
-        reg, active = None, False
+    client_socket, reg, active = None, None, False
 
-        while True:
-            command = input("Enter command: ").strip()
+    while True:
+        command = input("Enter command: ").strip()
 
-            if command.startswith('/join'):
-                # Check if HOST and PORT is valid
-                try:
-                    _, HOST, PORT = command.split(" ", 2)
-                    PORT = int(PORT)
+        if command.startswith('/join') and not active:
+            # Check if HOST and PORT is valid
+            try:
+                _, HOST, PORT = command.split(" ", 2)
+                PORT = int(PORT)
 
-                    if not is_valid_addr(HOST) or not is_valid_port(PORT):
-                        raise ValueError
+                if not is_valid_addr(HOST) or not is_valid_port(PORT):
+                    raise ValueError
 
-                    client_socket.connect((HOST, PORT))
-                    active = True
-                    print("Connected to the File Exchange Server successfully!")
+                client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                client_socket.connect((HOST, PORT))
 
-                except (ValueError, OSError):
-                    print("Error: Connection to the Server has failed! Please check IP Address and Port Number.")
+                active = True
+                print("Connected to the File Exchange Server successfully!")
 
-            elif command == '/?':
-                print_commands()
+            except (ValueError, OSError) as e:
+                print("Error: Connection to the Server has failed! Please check IP Address and Port Number.")
 
-            elif not active and command == '/leave':
-                print("Error: Disconnection failed. Please connect to the server first.")
+        elif command == '/exit':
+            print("Exiting application!")
+            break
 
-            elif active:
-                reg = execute_command(client_socket, reg, command)
+        elif command.startswith('/join') and active:
+            print("Error: Still connected to server. Leave from the server first.")
 
-                if reg is None and command == '/leave':
-                    print("Connection closed. Thank you!")
-                    active = False
+        elif command == '/?':
+            print_commands()
 
-            elif command == '/exit':
-                print("Exiting application!")
-                break
+        elif not active and command == '/leave':
+            print("Error: Disconnection failed. Please connect to the server first.")
 
-            elif any(command.startswith(key) for key in commands.keys()):
-                print("Error: Command not found.")
+        elif active:
+            reg = execute_command(client_socket, reg, command)
 
-            else:
-                print("Error: Please connect to the server first")
+            if reg is None and command == '/leave':
+                print("Connection closed. Thank you!")
+                active = False
+                client_socket.close()
+
+        elif any(command.startswith(key) for key in commands.keys()):
+            print("Error: Command not found.")
+
+        else:
+            print("Error: Please connect to the server first")
 
 if __name__ == "__main__":
     try:
