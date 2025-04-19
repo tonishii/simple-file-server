@@ -1,5 +1,5 @@
-# CSNETWK_MP
-My Machine Project submission for CSNETWK AY 2024-2025 Term 1. This Python application provides a file transfer client-server system that supports basic operations such as connecting to a server, registering a user, and sending/receiving files with real-time progress indication if tqdm was installed.
+# CSNETWK_MP 
+A Python application that provides a file transfer client-server system that supports basic operations such as connecting to a server, registering a user, and sending/receiving files with real-time progress indication if tqdm was installed.
 
 ## Testers
 The project includes the ff. files for testing:
