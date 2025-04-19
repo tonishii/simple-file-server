@@ -1,4 +1,3 @@
-# CSNETWK_MP 
 A Python application that provides a file transfer client-server system that supports basic operations such as connecting to a server, registering a user, and sending/receiving files with real-time progress indication if tqdm was installed.
 
 ## Testers
@@ -60,3 +59,5 @@ py .\SERVER.py <ip_addr> <port_number>
 ```bash
 py .\CLIENT.py
 ```
+
+CSNETWK_MP 
